@@ -1,0 +1,19 @@
+{
+  "name": "small-ruin-qq-bot",
+  "version": "0.0.1",
+  "description": "small ruin's qq bot",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsc && node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "hilshire",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "xianyu-robot": "^4.11.0"
+  },
+  "devDependencies": {
+    "ts-lint": "^4.5.1",
+    "typescript": "^4.2.4"
+  }
+}
