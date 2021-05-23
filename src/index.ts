@@ -1,10 +1,10 @@
 import App from 'xianyu-robot'
-import Widthdrawal from './pulgins/withdrawal'
+import Withdrawal from './pulgins/withdrawal'
 
 const app = new App()
 
 app
-.plugin(Widthdrawal)
+.plugin(Withdrawal)
 .start({
   wss: false, // 是否使用wss
   accessToken: "", // API的访问token
@@ -14,6 +14,6 @@ app
   reconnectionAttempts: 1000, // 连续连线失败的次数不超过这个值
   reconnectionDelay: 1000 // 重复连线的延迟时间, 单位: ms
 }, false, true).then(
-  res => console.log('start'),
+  () => {},
   e => console.error(e)
 )
