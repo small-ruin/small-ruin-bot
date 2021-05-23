@@ -44,23 +44,18 @@ export default class Withdrawal extends BotPlugin {
     })
   }
 
-  parseBotMsg(message: string) {
-    const regArr = /^bot(.+)?$/.exec(message)
-    return regArr && regArr[1].trim()
-  }
-
   // 发送机器人状态
   async sendBotStatus(group_id: number) {
     await this.checkGroupCache(group_id)
     this.Bot.Api.sendGroupMsg(group_id, this.group[group_id].switch ? `防撤回功能运作中` : `防撤回功能已关闭`)
   }
 
-
   // 监听群消息，开关
   handleGroupMsg() {
     this.Bot.Event.on('message.group', async ({ message, group_id }) => {
-      const commander = this.parseBotMsg(message)
-      if (!commander) return
+      const regArr = /^\[CQ:at,qq=536732215\](.+)?$/.exec(message)
+      if (!regArr) return
+      const commander = regArr[1]?.trim()
       console.log('[BOT] get commander > ', commander)
       switch (commander) {
         case 'on':
