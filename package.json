@@ -10,10 +10,13 @@
   "author": "hilshire",
   "license": "GPL-3.0",
   "dependencies": {
-    "xianyu-robot": "^4.11.0"
+    "axios": "^0.21.1",
+    "minimist": "^1.2.5",
+    "xianyu-robot": "^4.13.0"
   },
   "devDependencies": {
-    "ts-lint": "^4.5.1",
+    "@types/minimist": "^1.2.2",
+    "@types/node": "^16.4.13",
     "typescript": "^4.2.4"
   }
 }
