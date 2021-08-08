@@ -25,7 +25,7 @@ export default class SmallRuin extends BotPlugin {
         this.handleSearch(argv, e)
         break
       default:
-        this.Bot.Api.sendGroupMsg(e.group_id, `未知的指令: ${command}`)
+        this.Bot.Api.sendGroupMsg(e.group_id, `未知指令: ${command}`)
     }
   }
 
@@ -88,6 +88,7 @@ export default class SmallRuin extends BotPlugin {
   }
 
   init () {
+    console.log('baseUrl:', baseUrl)
     this.Bot.Command
       .command('small-ruin')
       .reg(/sm/)
