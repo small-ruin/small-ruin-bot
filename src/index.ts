@@ -1,13 +1,15 @@
 import App from 'xianyu-robot'
 import Withdrawal from './pulgins/withdrawal'
+import SmallRuin from './pulgins/smallRuin'
 
 const app = new App()
 
 app
 .plugin(Withdrawal)
+.plugin(SmallRuin)
 .start({
   wss: false, // 是否使用wss
-  accessToken: "", // API的访问token
+  accessToken: "small-ruin-bot-1", // API的访问token
   host: '127.0.0.1', // 客户端地址
   port: 6700, // 客服端端口
   reconnection: true, // 是否连线错误时自动重连
