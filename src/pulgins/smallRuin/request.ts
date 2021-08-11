@@ -24,6 +24,10 @@ export async function getLogs(adventureName: string, latest: boolean = false, li
   }
 }
 
-export async function search(adventureName: string, key: string) {
+export async function search(adventureName: string, key: string, logName?: string) {
   return axios.get<Log[]>(fixedEncodeURI(`api/adventure/search?noContent=true&name=${adventureName}&key=${key}`))
 } 
+
+export async function searchInLog(adventureName: string, key: string, logName: string) {
+  return axios.get<Log[]>(fixedEncodeURI(`api/adventure/search?name=${adventureName}&key=${key}&log=${logName}`))
+}

@@ -1,6 +1,7 @@
 import { BotPlugin, GroupMsg } from 'xianyu-robot';
 import minimist, { ParsedArgs } from 'minimist';
-import { getLogs, search, getAdventures} from './request'
+import cheerio from 'cheerio';
+import { getLogs, search, getAdventures, searchInLog} from './request'
 import { Adventure, Log } from './interface';
 
 const baseUrl = process.env.BASE_URL
@@ -83,19 +84,50 @@ export default class SmallRuin extends BotPlugin {
     }
   }
   async handleSearch(argv: ParsedArgs, e: GroupMsg) {
-    const { url } = this.parseArgv(argv)
     const adventureName = argv._[1]
-    const key = argv._[2]
+    let logName: string | null = argv._[2]
+    let key = argv._[3]
+    if (!key) {
+      key = logName
+      logName = null
+    }
     if (!adventureName || !key) {
-      return this.Bot.Api.sendGroupMsg(e.group_id, '用法：sm search <adventure name> <keyword>')
+      return this.Bot.Api.sendGroupMsg(e.group_id, '用法：sm search <adventure name> [log name] <keyword>')
     }
     try {
-      const logsRes = await search(adventureName, key) 
-      if (logsRes.data?.length !== 0) {
-        return this.Bot.Api.sendGroupMsg(e.group_id, this.getLogMsg(logsRes.data, true))
+      if (logName) {
+        const logRes = await searchInLog(adventureName, key, logName)
+        const log = logRes.data[0]
+        let htmlStr = log?.content
+        if (htmlStr) {
+          htmlStr = htmlStr.substr(3, htmlStr.length - 3);
+          const $ = cheerio.load(htmlStr);
+          const result: string[] = [];
+          let count = 0;
+          $('font, p').each(function() {
+              const text = $(this).html();
+              if (text && text.indexOf(key) !== -1 && count < 1000) {
+                  result.push(text.replace('&lt;', '<').replace('&gt;', '>'));
+                  count += text.length;
+              }
+          })
+          
+          let msg = `${this.getLogMsg([log], true)}\n${result.join('\n')}`
+          if (count > 1000) {
+            msg += '\n--------\n更多命中项请在log中确认。'
+          }
+
+          return this.Bot.Api.sendGroupMsg(e.group_id, msg)
+        }
+      } else {
+        const logsRes = await search(adventureName, key) 
+        if (logsRes.data?.length !== 0) {
+          return this.Bot.Api.sendGroupMsg(e.group_id, this.getLogMsg(logsRes.data, true))
+        }
       }
       return this.Bot.Api.sendGroupMsg(e.group_id, '未命中')
-    } catch {
+    } catch(e) {
+      console.log(e)
       return this.Bot.Api.sendGroupMsg(e.group_id, '出错了')
     }
   }
