@@ -9,6 +9,7 @@ const baseUrl = process.env.BASE_URL
 type Command = 'list' | 'search'
 
 export default class SmallRuin extends BotPlugin {
+  name = 'small-ruin'
   constructor(bot: any) {
     super('small-ruin', bot);
   }

@@ -4,6 +4,7 @@
   "description": "small ruin's qq bot",
   "main": "dist/index.js",
   "scripts": {
+    "dev": "nodemon -e ts -w ./src -x npm run start",
     "start": "tsc && node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@types/minimist": "^1.2.2",
     "@types/node": "^16.4.13",
+    "nodemon": "^2.0.15",
     "typescript": "^4.2.4"
   }
 }
