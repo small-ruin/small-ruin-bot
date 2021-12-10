@@ -3,11 +3,12 @@ import minimist, { ParsedArgs } from 'minimist';
 import cheerio from 'cheerio';
 import { getLogs, search, getAdventures, searchInLog} from './request'
 import { Adventure, Log } from './interface';
+import { HELP_SM, HELP_SUFFIX } from '../../constant';
 
 // @ts-ignore
 const baseUrl = process.env.BASE_URL
 
-type Command = 'list' | 'search'
+type Command = 'list' | 'search' | 'help'
 
 export default class SmallRuin extends BotPlugin {
   name = 'small-ruin'
@@ -23,6 +24,9 @@ export default class SmallRuin extends BotPlugin {
         break
       case 'search':
         this.handleSearch(argv, e)
+        break
+      case 'help':
+        this.Bot.Api.sendGroupMsg(e.group_id, HELP_SUFFIX + HELP_SM)
         break
       default:
         this.Bot.Api.sendGroupMsg(e.group_id, `未知指令: ${command}`)

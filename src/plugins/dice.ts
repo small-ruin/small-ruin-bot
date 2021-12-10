@@ -1,8 +1,9 @@
 import minimist from "minimist";
 import { BotPlugin, GroupMsg } from "xianyu-robot";
+import { HELP_DICE, HELP_SUFFIX } from "../constant";
 import Speaker from "../dice/speaker";
 
-type Command = 'save' | 'exec' | 'list' | 'expect' | 'ma' | 'delete' | 'clear'
+type Command = 'save' | 'exec' | 'list' | 'expect' | 'ma' | 'delete' | 'clear' | 'help'
 
 export default class DicePlugin extends BotPlugin {
     name = 'dice'
@@ -66,6 +67,9 @@ export default class DicePlugin extends BotPlugin {
                         sender.card +
                             `的多打(bab:${bab}, ab${ab})：` +
                             speaker.multipleAttack(bab, ab, argv.d || argv.damage, argv.t || argv.times))
+                    break
+                case 'help':
+                    this.Bot.Api.sendGroupMsg(group_id, HELP_SUFFIX + HELP_DICE)
                     break
                 default:
                     this.Bot.Api.sendGroupMsg(group_id, sender.card + '的' + speaker.exec(argv._, argv.t || argv.times))

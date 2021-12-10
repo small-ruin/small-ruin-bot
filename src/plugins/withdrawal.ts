@@ -1,5 +1,5 @@
 import { BotPlugin, GroupRecall, MemberInfo } from "xianyu-robot";
-import { WITHDRAWAL_CLOSE_ALERT, WITHDRAWAL_OPEN_ALERT, HELP } from '../constant'
+import { WITHDRAWAL_CLOSE_ALERT, WITHDRAWAL_OPEN_ALERT, HELP_SUFFIX, HELP_WITHDRAWAL } from '../constant'
 
 interface GroupCacheMap {
   [key: number]: GroupCache
@@ -69,7 +69,7 @@ export default class Withdrawal extends BotPlugin {
           this.sendBotStatus(group_id)
           break;
         default:
-          this.Bot.Api.sendGroupMsg(group_id, HELP)
+          this.Bot.Api.sendGroupMsg(group_id, HELP_SUFFIX + HELP_WITHDRAWAL)
       }
     })
   }
