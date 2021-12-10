@@ -2,14 +2,11 @@ import minimist from "minimist";
 import { BotPlugin, GroupMsg } from "xianyu-robot";
 import Speaker from "../dice/speaker";
 
-type Command = 'save' | 'exec' | 'list' | 'expect' | 'ma'
+type Command = 'save' | 'exec' | 'list' | 'expect' | 'ma' | 'delete' | 'clear'
 
 export default class DicePlugin extends BotPlugin {
     name = 'dice'
     speakers: Record<number, Speaker> = {}
-    constructor(bot: any) {
-        super('dice', bot);
-    }
     getSpeaker(id: number) {
         if (this.speakers[id]) {
             return this.speakers[id]
@@ -25,7 +22,7 @@ export default class DicePlugin extends BotPlugin {
             switch (command as Command) {
                 case 'save':
                     if (!argv.n && !argv.name) {
-                        this.Bot.Api.sendGroupMsg(group_id, '必须声明模版名')
+                        return this.Bot.Api.sendGroupMsg(group_id, '必须声明模版名')
                     }
                     speaker.saveTemplate(argv.n || argv.name, argv._.slice(1))
                     this.Bot.Api.sendGroupMsg(group_id,
@@ -33,7 +30,24 @@ export default class DicePlugin extends BotPlugin {
                     )
                     break
                 case 'exec':
-                    this.Bot.Api.sendGroupMsg(group_id, speaker.execTemplate(argv.n || argv._[1]))
+                    this.Bot.Api.sendGroupMsg(group_id, sender.card + '的' + speaker.execTemplate(argv.n || argv._[1], argv.t || argv.times))
+                    break
+                case 'delete':
+                    const name = argv.n || argv.name
+                    if (!name) {
+                        return this.Bot.Api.sendGroupMsg(group_id, '必须声明模版名')
+                    }
+                    if (!speaker.getTemplate(name)) {
+                        return this.Bot.Api.sendGroupMsg(group_id, `没有名称为${name}的模板，现有模版${speaker.listTemplate()}`)
+                    }
+                    speaker.deleteTemplate(name)
+                    this.Bot.Api.sendGroupMsg(group_id,
+                        `已删除。现有模版：\n${speaker.listTemplate()}`
+                    )
+                    break
+                case 'clear':
+                    speaker.clearTemplate()
+                    this.Bot.Api.sendGroupMsg(group_id, `已清空所有模版`)
                     break
                 case 'expect':
                     this.Bot.Api.sendGroupMsg(
@@ -47,10 +61,14 @@ export default class DicePlugin extends BotPlugin {
                 case 'ma':
                     const bab = argv.bab || argv._[1]
                     const ab = argv.ab || argv._[2] || argv._[1]
-                    this.Bot.Api.sendGroupMsg(group_id, sender.nickname + `的多打(bab:${bab}, ab${ab})：` + speaker.multipleAttack(bab, ab))
+                    this.Bot.Api.sendGroupMsg(
+                        group_id,
+                        sender.card +
+                            `的多打(bab:${bab}, ab${ab})：` +
+                            speaker.multipleAttack(bab, ab, argv.d || argv.damage, argv.t || argv.times))
                     break
                 default:
-                    this.Bot.Api.sendGroupMsg(group_id, sender.nickname + '的' + speaker.exec(argv._))
+                    this.Bot.Api.sendGroupMsg(group_id, sender.card + '的' + speaker.exec(argv._, argv.t || argv.times))
             }
         } catch (e) {
             this.Bot.Api.sendGroupMsg(group_id, e+'')

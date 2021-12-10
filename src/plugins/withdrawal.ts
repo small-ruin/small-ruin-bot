@@ -11,9 +11,6 @@ interface GroupCache {
 }
 export default class Withdrawal extends BotPlugin {
   group: GroupCacheMap = {}
-  constructor(bot: any) {
-    super('Withdrawal', bot)
-  }
 
   // 判断qq群缓存是否过期(默认每天刷新一次)
   cacheOutDate(group_id: number) {

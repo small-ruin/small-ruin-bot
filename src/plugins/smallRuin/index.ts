@@ -4,15 +4,13 @@ import cheerio from 'cheerio';
 import { getLogs, search, getAdventures, searchInLog} from './request'
 import { Adventure, Log } from './interface';
 
+// @ts-ignore
 const baseUrl = process.env.BASE_URL
 
 type Command = 'list' | 'search'
 
 export default class SmallRuin extends BotPlugin {
   name = 'small-ruin'
-  constructor(bot: any) {
-    super('small-ruin', bot);
-  }
 
   handleSmallRuinCommand(e: GroupMsg) {
     const argv = minimist(e.message.split(' ').slice(1))
@@ -127,9 +125,9 @@ export default class SmallRuin extends BotPlugin {
         }
       }
       return this.Bot.Api.sendGroupMsg(e.group_id, '未命中')
-    } catch(e) {
-      console.log(e)
-      return this.Bot.Api.sendGroupMsg(e.group_id, '出错了')
+    } catch(error) {
+      console.log(error)
+      return this.Bot.Api.sendGroupMsg(e.group_id, '出错了:' + error)
     }
   }
 
