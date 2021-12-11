@@ -33,10 +33,10 @@ sd 指 small-ruin dice
 
 Usage:
 sd [command] [option] [掷骰表达式] [任何说明]
-如果不使用 command 会简单地进行掷骰。掷骰表达式会得到一个随机数，说明则简单地打印出来
+如果不输入 command 会简单地进行掷骰。掷骰表达式会计算结果，说明则简单地打印出来
 
 掷骰表达式：
-[掷骰数]d<骰子面数>[+加值/-减值]
+[掷骰数]d<骰子面数>[+<加值>/-<减值>]
 例：d8+2 2d8-3
 
 command:
@@ -45,7 +45,7 @@ exec -n <template name>: 执行模版
 delete -n <template name>: 删除模版
 clear: 删除所有模版
 list: 列出模版
-expect -d <骰子面数> -t <次数>: 测试期望
+expect <掷骰表达式> [-t <次数>]: 测试期望，默认1000次
 ma --bab <bab> --ab <ab> [-d/--damage <damage>]: 多打
 
 example:
@@ -53,7 +53,7 @@ sd d20+5 巨剑挥砍 d12+7 伤害
 sd save -n 攻击1 d20+5 巨剑挥砍 d12+7 伤害
 sd exec -n 攻击1
 sd delete -n 攻击1
-sd expect -d 20 -t 10000
+sd expect d20+1 -t 10000
 sd ma --bab 11 --ab 20 --damage d8+3
 `
   

@@ -53,7 +53,7 @@ export default class DicePlugin extends BotPlugin {
                 case 'expect':
                     this.Bot.Api.sendGroupMsg(
                         group_id,
-                        `${speaker.expected(argv.d, argv.t)}`
+                        `执行${argv.t || 1000}次，均值${speaker.expected(argv._[1], argv.t)}`
                     )
                     break
                 case 'list':

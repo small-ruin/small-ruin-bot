@@ -10,42 +10,42 @@ export default class Speaker {
         this.template = {}
     }
 
+    parseExpress(express: string) {
+        return express.replace(/\d*d\d+/g, (subs) => {
+            let [self, time = 1, diceN] = /^(\d*)d(\d+)/.exec(subs) as RegExpExecArray
+            time = +time
+            let result = ''
+            if (time > 1) {
+                result += '('
+                while (time > 0) {
+                    result += this.dice.roll(+diceN)
+                    // 不是最后一次roll点
+                    if (time !== 1) {
+                        result += '+'
+                    }
+
+                    time--
+                }
+                result += ')'
+            } else {
+                result += this.dice.roll(+diceN)
+            }
+            return result
+        })
+    }
+
     exec(commander: string[], times: number = 1) {
         let result = '掷骰：'
 
         while(times) {
             commander.forEach(c => {
                 if (/^\d*d[\+\-\dd]+/.exec(c)) {
-                    let express = c
-                    express = express.replace(/\d*d\d+/g, (subs) => {
-                        let [self, time = 1, diceN] = /^(\d*)d(\d+)/.exec(subs) as RegExpExecArray
-                        time = +time
-                        let result = ''
-                        if (time > 1) {
-                            result += '('
-                            while (time > 0) {
-                                result += this.dice.roll(+diceN)
-                                // 不是最后一次roll点
-                                if (time !== 1) {
-                                    result += '+'
-                                }
-
-                                time--
-                            }
-                            result += ')'
-                        } else {
-                            result += this.dice.roll(+diceN)
-                        }
-                        return result
-                    })
-
-                    console.log('express:', express)
-
+                    const expressResult = this.parseExpress(c)
                     // 单个骰子且无加值
                     if (/^d\d+$/.exec(c)) {
-                        result += `\n${c}=${express}`
+                        result += `\n${c}=${expressResult}`
                     } else {
-                        result += `\n${c}=${express}=${eval(express)}`
+                        result += `\n${c}=${expressResult}=${eval(expressResult)}`
                     }
 
                 } else {
@@ -86,8 +86,13 @@ export default class Speaker {
         return result+this.exec(execArgs, times)
     }
 
-    expected(diceN: number, times: number = 1000) {
-        return this.dice.expected(diceN, times)
+    expected(express: string, times: number = 1000) {
+        let result = 0
+        let nowTimes = times
+        while(nowTimes--) {
+            result += eval(this.parseExpress(express))
+        }
+        return (result/times).toFixed(4)
     }
 
     saveTemplate(name: string, template: string[]) {
