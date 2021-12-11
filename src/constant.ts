@@ -32,8 +32,9 @@ export const HELP_DICE=
 sd 指 small-ruin dice
 
 Usage:
-sd [command] [option] [掷骰表达式] [任何说明]
-如果不输入 command 会简单地进行掷骰。掷骰表达式会计算结果，说明则简单地打印出来
+sd [option] [掷骰表达式] [任何说明] [-t <次数>]
+掷骰。掷骰表达式会计算结果，说明则简单地打印出来
+sd [command] 见下
 
 掷骰表达式：
 [掷骰数]d<骰子面数>[+<加值>/-<减值>]
@@ -41,12 +42,12 @@ sd [command] [option] [掷骰表达式] [任何说明]
 
 command:
 save -n <template name> [掷骰表达式] [任何说明]: 储存模版
-exec -n <template name>: 执行模版
+exec -n <template name> [-t <次数>]: 执行模版
 delete -n <template name>: 删除模版
 clear: 删除所有模版
 list: 列出模版
 expect <掷骰表达式> [-t <次数>]: 测试期望，默认1000次
-ma --bab <bab> --ab <ab> [-d/--damage <damage>]: 多打
+ma --bab <bab> --ab <ab> [-d/--damage <damage>] [-t <次数>]: 多打
 
 example:
 sd d20+5 巨剑挥砍 d12+7 伤害
