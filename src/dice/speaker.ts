@@ -15,29 +15,39 @@ export default class Speaker {
 
         while(times) {
             commander.forEach(c => {
-                const catchResult = /^(\d+)?d(\d+)([\+\-])?(\d+)?/.exec(c)
-                if (catchResult) {
-                    let time = catchResult[1] ? +catchResult[1] : 1
-                    const d = +catchResult[2]
-                    // 加值还是减值
-                    const attachType = catchResult[3]
-                    const attach = +catchResult[4]
-                    let rollResult = []
-                    for(;time>0;time--) {
-                        rollResult.push(this.dice.roll(d))
-                    }
-                    result += rollResult.length > 1
-                        // ...=(2+3)
-                        ? `\n${c}=(${rollResult.join('+')})`
-                        // ...=5 此时无加值计算已完成
-                        : `\n${c}=${rollResult[0]}`
+                if (/^\d*d[\+\-\dd]+/.exec(c)) {
+                    let express = c
+                    express = express.replace(/\d*d\d+/g, (subs) => {
+                        let [self, time = 1, diceN] = /^(\d*)d(\d+)/.exec(subs) as RegExpExecArray
+                        time = +time
+                        let result = ''
+                        if (time > 1) {
+                            result += '('
+                            while (time > 0) {
+                                result += this.dice.roll(+diceN)
+                                // 不是最后一次roll点
+                                if (time !== 1) {
+                                    result += '+'
+                                }
 
-                    if (attachType && attach) {
-                        let calcResult = rollResult.reduce((p, c) => p+c)
-                        if (attachType === '+') calcResult += attach
-                        else calcResult -= attach
-                        result += `${attachType || ''}${attach || ''}=${calcResult}`
+                                time--
+                            }
+                            result += ')'
+                        } else {
+                            result += this.dice.roll(+diceN)
+                        }
+                        return result
+                    })
+
+                    console.log('express:', express)
+
+                    // 单个骰子且无加值
+                    if (/^d\d+$/.exec(c)) {
+                        result += `\n${c}=${express}`
+                    } else {
+                        result += `\n${c}=${express}=${eval(express)}`
                     }
+
                 } else {
                     result += ' ' + c
                 }
