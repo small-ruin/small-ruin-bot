@@ -15,21 +15,28 @@ export default class Speaker {
 
         while(times) {
             commander.forEach(c => {
-                const catchResult = /^(\d+)?d(\d+)\+?(\d+)?/.exec(c)
+                const catchResult = /^(\d+)?d(\d+)([\+\-])?(\d+)?/.exec(c)
                 if (catchResult) {
-                    let time = 1
+                    let time = catchResult[1] ? +catchResult[1] : 1
+                    const d = +catchResult[2]
+                    // 加值还是减值
+                    const attachType = catchResult[3]
+                    const attach = +catchResult[4]
                     let rollResult = []
-                    if (catchResult[1]) {
-                        time = +catchResult[1]
-                    }
                     for(;time>0;time--) {
-                        rollResult.push(this.dice.roll(+catchResult[2]))
+                        rollResult.push(this.dice.roll(d))
                     }
                     result += rollResult.length > 1
+                        // ...=(2+3)
                         ? `\n${c}=(${rollResult.join('+')})`
+                        // ...=5 此时无加值计算已完成
                         : `\n${c}=${rollResult[0]}`
-                    if (catchResult[3]) {
-                        result += `+${catchResult[3]}=${rollResult.reduce((p, c) => p+c) + +catchResult[3]}`
+
+                    if (attachType && attach) {
+                        let calcResult = rollResult.reduce((p, c) => p+c)
+                        if (attachType === '+') calcResult += attach
+                        else calcResult -= attach
+                        result += `${attachType || ''}${attach || ''}=${calcResult}`
                     }
                 } else {
                     result += ' ' + c
