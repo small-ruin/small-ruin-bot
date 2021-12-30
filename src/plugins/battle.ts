@@ -9,17 +9,35 @@ export default class DicePlugin extends BotPlugin {
     active: boolean = false
     cache: Record<number, Battle> = {}
     timeoutFlag = null
-    print(groupId: number, ms: string | string[] | undefined) {
+    print(e: GroupMsg | PrivateMsg, ms: string | string[] | undefined) {
         if (!ms) return
         if (Array.isArray(ms)) {
-            setTimeout(() => this.print(groupId, ms.shift()), 1000)
+            setTimeout(() => this.print(e, ms.shift()), 1000)
         } else {
-            this.Bot.Api.sendGroupMsg(groupId, ms)
+            if ((<GroupMsg>e).group_id) {
+                this.Bot.Api.sendGroupMsg((<GroupMsg>e).group_id, ms)
+            } else {
+                this.Bot.Api.sendPrivateMsg((<PrivateMsg>e).user_id, ms)
+            }
         }
     }
-    privatePrint(userId: number, m: string) {
-        this.Bot.Api.sendPrivateMsg(userId, m)
+    privatePrint(userId: number, ms: string | string[] | undefined) {
+        if (!ms) return
+        if (Array.isArray(ms)) {
+            setTimeout(() => this.privatePrint(userId, ms.shift()), 1000)
+        } else {
+            this.Bot.Api.sendPrivateMsg(userId, ms)
+        }
     }
+    groupPrint(groupId: number, ms: string | string[] | undefined) {
+        if (!ms) return
+        if (Array.isArray(ms)) {
+            setTimeout(() => this.privatePrint(groupId, ms.shift()), 1000)
+        } else {
+            this.Bot.Api.sendPrivateMsg(groupId, ms)
+        }
+    }
+
     parseArgv(argv: minimist.ParsedArgs) {
         return {
             autoJump: argv.offJump,
@@ -35,84 +53,85 @@ export default class DicePlugin extends BotPlugin {
         }
     }
 
-    handleMember(m: GroupMsg, argv: minimist.ParsedArgs, battle: Battle) {
+    handleMember(m: GroupMsg | PrivateMsg, argv: minimist.ParsedArgs, battle: Battle) {
         const command = argv._[1]
         const name = argv._[2]
         const parsedArgv = this.parseArgv(argv) as any
         switch (command) {
             case 'add':
                 battle.addMember(parsedArgv)
-                this.privatePrint(m.user_id, '添加成功:' + name)
+                this.privatePrint(battle.dm, '添加成功:' + name)
                 break;
             case 'set':
                 battle.setMember(name, parsedArgv)
-                this.privatePrint(m.user_id, '设置成功:' + battle.getMember(name))
+                this.privatePrint(battle.dm, '设置成功:' + battle.getMember(name))
             case 'delete':
                 battle.delete(name)
-                this.privatePrint(m.user_id, '删除成功:\n' + battle)
+                this.privatePrint(battle.dm, '删除成功:\n' + battle)
             case 'condition':
                 battle.setCondition(name, parsedArgv.condition, parsedArgv.round)
-                this.privatePrint(m.user_id, '设置成功:' + battle.getMember(name))
+                this.privatePrint(battle.dm, '设置成功:' + battle.getMember(name))
             case 'damage':
                 const damage = +argv._[3]
                 if (isNaN(damage)) throw new Error('错误的数值')
                 battle.damage(name, damage)
-                this.privatePrint(m.user_id, '设置成功:' + battle.getMember(name))
+                this.privatePrint(battle.dm, '设置成功:' + battle.getMember(name))
             case 'list':
-                this.print(m.group_id, ''+battle)
+                this.print(m, ''+battle)
             default:
                 break;
         }
     }
-    handleInit(m: GroupMsg, argv: minimist.ParsedArgs, battle: Battle) {
+    handleInit(m: GroupMsg | PrivateMsg, argv: minimist.ParsedArgs, battle: Battle) {
         const command = argv._[1]
         const name = argv._[2]
         const parsedArgv = this.parseArgv(argv) as any
         switch (command) {
             case 'list':
-                battle.printInit(parsedArgv.all)
+                this.print(m, battle.printInit(parsedArgv.all))
                 break;
             case 'set':
                 const init = +argv._[3]
                 if (isNaN(init)) throw new Error('错误的数值')
                 battle.setInit(name, init)
+                this.privatePrint(battle.dm, '设置成功')
                 break
             default:
                 break;
         }
     }
-    handleNext(e: GroupMsg, battle: Battle) {
+    handleNext(battle: Battle) {
         battle.nextRound()
-        this.print(e.group_id, `======== 第${battle.round}轮 ========`)
+        this.groupPrint(battle.groupId, `======== 第${battle.round}轮 ========`)
     }
-    handleNextOne(e: GroupMsg, battle: Battle) {
+    handleNextOne(battle: Battle) {
         battle.next()
         const rst = [`-------- 第${battle.round}轮，${battle.current?.name}的回合 --------`]
 
         if (battle.autoInfo && battle.current) {
             rst.push(battle.getMember(battle.current.name) + '')
         }
-        this.print(e.group_id, rst)
+        this.groupPrint(battle.groupId, rst)
     }
-    battleOn(e: GroupMsg, battle: Battle) {
+    battleOn(battle: Battle) {
         if (battle.autoJump) {
             // @ts-ignore
             this.timeoutFlag = setTimeout(() => {
-                this.handleNextOne(e, battle)
+                this.handleNextOne(battle)
             }, battle.time * 1000 * 60)
         } else {
-            this.handleNextOne(e, battle)
+            this.handleNextOne(battle)
         }
     }
-    parseGroupCmd(e: GroupMsg, battle: Battle) {
-        const { group_id, message, user_id, sender } = e
+    parseCmd(e: GroupMsg | PrivateMsg, battle: Battle) {
+        const { message } = e
         const argv = minimist(message.split(' '))
         switch(argv._[0] as Command) {
             case 'on':
                 this.active = true
                 if (!battle.current)
-                    this.print(e.group_id, '******** 战斗开始 ********')
-                this.battleOn(e, battle)
+                    this.groupPrint(battle.groupId, '******** 战斗开始 ********')
+                this.battleOn(battle)
                 
                 break;
             case 'pause':
@@ -125,7 +144,7 @@ export default class DicePlugin extends BotPlugin {
                 if (this.timeoutFlag)
                     clearTimeout(this.timeoutFlag)
                 battle.reset()
-                this.print(e.group_id, '******** 战斗结束 ********')
+                this.groupPrint(battle.groupId, '******** 战斗结束 ********')
             case 'member':
                 this.handleMember(e, argv, battle)
                 break;
@@ -133,10 +152,10 @@ export default class DicePlugin extends BotPlugin {
                 this.handleInit(e, argv, battle)
                 break
             case 'next':
-                this.handleNext(e, battle)
+                this.handleNext(battle)
                 break;
             case 'nextone':
-                this.handleNextOne(e, battle)
+                this.handleNextOne(battle)
                 break
             case 'reset':
                 battle.reset();
@@ -159,7 +178,7 @@ export default class DicePlugin extends BotPlugin {
                 battle.autoInfo = false
                 break
             case 'help':
-                this.print(e.group_id, HELP_SB)
+                this.print(e, HELP_SB)
                 break
         }
     }
@@ -170,14 +189,29 @@ export default class DicePlugin extends BotPlugin {
                 const {message, group_id, sender} = e
                 try {
                     let bt = this.cache[sender.user_id];
-                    if (!bt) bt = this.cache[sender.user_id] = new Battle(sender.user_id)
-                    if (e.message.match(/^sb/)) {
-                        this.parseGroupCmd(e, bt)
-                    } else if (e.message.match(/end/) && this.active) {
-                        this.handleNext(e, bt)
+                    if (!bt) bt = this.cache[sender.user_id] = new Battle(sender.user_id, group_id)
+                    if (message.match(/^sb/)) {
+                        this.parseCmd(e, bt)
+                    } else if (message.match(/end/) && this.active) {
+                        this.handleNext(bt)
                     }
-                } catch(e) {
-                    this.print(group_id, e + '')
+                } catch(err) {
+                    this.print(e, err + '')
+                }
+            })
+            .action('private', (e: PrivateMsg) => {
+                const {message, user_id, sender} = e
+                try {
+                    let bt = this.cache[sender.user_id];
+                    if (!bt)
+                        throw new Error('无挂载中的战斗')
+                    if (e.message.match(/^sb/)) {
+                        this.parseCmd(e, bt)
+                    } else if (e.message.match(/end/) && this.active) {
+                        this.handleNext(bt)
+                    }
+                } catch(err) {
+                    this.privatePrint(user_id, err + '')
                 }
             })     
         }

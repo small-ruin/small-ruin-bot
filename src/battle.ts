@@ -74,6 +74,7 @@ export class Member {
 }
 
 export class Battle {
+  groupId: number
   dm: number
   members: Member[] = []
   round = 0
@@ -82,8 +83,9 @@ export class Battle {
   autoJump = true
   autoInfo = true
   
-  constructor(dm: number) {
+  constructor(dm: number, groupId: number) {
     this.dm = dm
+    this.groupId = groupId
   }
 
   addMember(m: Member) {
