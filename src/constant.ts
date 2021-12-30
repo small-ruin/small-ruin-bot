@@ -57,4 +57,31 @@ sd delete -n 攻击1
 sd expect d20+1 -t 10000
 sd ma --bab 11 --ab 20 --damage d8+3
 `
+
+export const HELP_SB=
+`战斗辅助功能
+Usage:
+sb <common>
+common:
+jump: 自动跳过
+jump-time | jt: 自动跳过时长，默认5分钟
+jump-off | jf: 关闭自动跳过
+reminder: 自动提醒
+reminder-off | rf: 关闭自动提醒
+on/pause/end <options>: 开始/暂停/结束战斗, options如下：
+member: 管理参与者，后接：
+  add <name> [-h hp] [-i 先攻]  [-t 临时生命] [-e 是否怪物]: 添加参与者
+  set <name> [-h hp] [-i 先攻]  [-t 临时生命] [-e 是否怪物]: 修改参与者
+  delete <name>: 删除参与者
+  condition <name> [-c 状态 -r 轮数]: 设置状态
+  damage <name> <damage>: 记录伤害
+  list [-a]: 查看人员
+next: 下一轮
+nextone: 下一个
+switch <name1> <name2> 交换两个先攻相同的人的顺序
+reset: 重置
+init: 先攻，后接：
+  list [-a] 先攻表
+  set <name> <init> 设置先攻
+`
   

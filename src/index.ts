@@ -2,6 +2,7 @@ import App from 'xianyu-robot'
 import Withdrawal from './plugins/withdrawal'
 import SmallRuin from './plugins/smallRuin'
 import DicePlugin from './plugins/dice'
+import BattlePlugin from './plugins/battle'
 
 const app = new App()
 
@@ -9,6 +10,7 @@ app
 // .plugin(Withdrawal)
 .plugin(SmallRuin)
 .plugin(DicePlugin)
+.plugin(BattlePlugin)
 .start({
   wss: false, // 是否使用wss
   accessToken: "", // API的访问token
