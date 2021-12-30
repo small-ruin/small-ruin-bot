@@ -32,7 +32,7 @@ export class Member {
     this.init = init
     this.enemy = enemy
   }
-  toString() {
+  print() {
     return `${this.name}: hp-${this.hp} 临时生命-${this.tempHp} init-${this.init} 怪物-${this.enemy ? '是' : '否'}
 状态：${this.conditions.map(c => c.name + '-' + (c.round ? c.round + '轮' : c.round )).join('、')}`
   }
@@ -88,8 +88,8 @@ export class Battle {
     this.groupId = groupId
   }
 
-  addMember(m: Member) {
-    this.members.push(m)
+  addMember(m: any) {
+    this.members.push(new Member(m))
     this.sort()
   }
   delete(name: string) {
@@ -134,7 +134,7 @@ export class Battle {
   }
   getMemberIdx(name: string) {
     const i = this.members.findIndex(m => m.name === name)
-    if (!i) throw new Error('未找到PC')
+    if (i === -1) throw new Error('未找到PC')
     return i
   }
   isLastMember(name: string) {
@@ -161,6 +161,7 @@ export class Battle {
     if (this.current === null) {
       this.current = this.members[0]
     } else {
+      console.log(this.current)
       const currentIdx = this.getMemberIdx(this.current.name)
       if (this.isLastMember(this.current.name)) {
         this.nextRound()
@@ -184,12 +185,12 @@ export class Battle {
   damage(name: string, damage: number) {
     this.getMember(name)?.damage(damage)
   }
-  toString() {
-    return this.members.map(m => +m).join('\n')
+  print() {
+    return this.members.map(m => m.print()).join('\n')
   }
   printInit(a: boolean) {
     let list = this.members.slice()
     if (!a) list = list.filter(m => !m.enemy) 
-    return list.map(m => m.name + ':' + m.init)
+    return list.map(m => m.name + ':' + m.init).join('\n')
   }
 }

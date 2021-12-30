@@ -63,12 +63,14 @@ export const HELP_SB=
 Usage:
 sb <common>
 common:
+current: 群聊专用，将当前群设置为触发战斗的群
 jump: 自动跳过
 jump-time | jt: 自动跳过时长，默认5分钟
 jump-off | jf: 关闭自动跳过
 reminder: 自动提醒
 reminder-off | rf: 关闭自动提醒
-on/pause/end <options>: 开始/暂停/结束战斗, options如下：
+on/pause: 开始/暂停/结束战斗, options如下
+end： 结束战斗。注意：这会直接删除发送DM的所有数据！！！
 member: 管理参与者，后接：
   add <name> [-h hp] [-i 先攻]  [-t 临时生命] [-e 是否怪物]: 添加参与者
   set <name> [-h hp] [-i 先攻]  [-t 临时生命] [-e 是否怪物]: 修改参与者
@@ -76,8 +78,8 @@ member: 管理参与者，后接：
   condition <name> [-c 状态 -r 轮数]: 设置状态
   damage <name> <damage>: 记录伤害
   list [-a]: 查看人员
-next: 下一轮
-nextone: 下一个
+nextRound: 下一轮
+next: 下一个
 switch <name1> <name2> 交换两个先攻相同的人的顺序
 reset: 重置
 init: 先攻，后接：
