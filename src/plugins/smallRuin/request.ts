@@ -9,7 +9,6 @@ function fixedEncodeURI(str: string) {
 
 export async function getAdventures() {
   try {
-    console.log(axios.defaults.baseURL)
     return axios.get<Log[]>('api/adventure');
   } catch (e) {
     return null
@@ -19,7 +18,6 @@ export async function getAdventures() {
 export async function getLogs(adventureName: string, latest: boolean = false, limit?: number) {
   const adventureIdRes = await axios.get(fixedEncodeURI(`api/adventure/id?name=${adventureName}`))
   if (adventureIdRes.data.id) {
-    console.log(`api/adventure/${adventureIdRes.data.id}/logs?limit=${limit || ''}&latest=${latest || ''}`)
     return axios.get<Adventure[]>(`api/adventure/${adventureIdRes.data.id}/logs?limit=${limit || ''}&latest=${latest || ''}`)
   }
 }

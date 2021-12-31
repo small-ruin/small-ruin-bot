@@ -16,7 +16,6 @@ export default class DicePlugin extends BotPlugin {
     }
     parseCmd({ group_id, message, user_id, sender }: GroupMsg) {
         const argv = minimist(message.split(' ').slice(1))
-        console.log('argv:', argv)
         const command: string = argv._[0] || ''
         const speaker = this.getSpeaker(user_id)
         try {

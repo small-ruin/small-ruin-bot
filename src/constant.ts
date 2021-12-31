@@ -65,15 +65,22 @@ sb <common>
 common:
 current: 群聊专用，将当前群设置为触发战斗的群
 jump: 自动跳过
-jump-time | jt: 自动跳过时长，默认5分钟
-jump-off | jf: 关闭自动跳过
+jump-time | t: 自动跳过时长，默认5分钟
+jump-off | J: 关闭自动跳过
 reminder: 自动提醒
-reminder-off | rf: 关闭自动提醒
-on/pause: 开始/暂停/结束战斗, options如下
+reminder-off | R: 关闭自动提醒
+at: 每回合自动@pc
+at-off | af: 关闭自动@
+on: 开始战斗计时, options如下
+  -j/-J 打开/关闭自动跳过
+  -t <time> 自动跳过时长，默认5分钟
+  -r/-R 打开关闭自动提醒
+  -a/-A 打开关闭自动@
+pause: 暂停计时器
 end： 结束战斗。注意：这会直接删除发送DM的所有数据！！！
 member: 管理参与者，后接：
-  add <name> [-h hp] [-i 先攻]  [-t 临时生命] [-e 是否怪物]: 添加参与者
-  set <name> [-h hp] [-i 先攻]  [-t 临时生命] [-e 是否怪物]: 修改参与者
+  add <name> [-h hp] [-i 先攻]  [-t 临时生命] [-e 是否怪物] [-q qq昵称]: 添加参与者
+  set <name> [-h hp] [-i 先攻]  [-t 临时生命] [-e 是否怪物] [-q qq昵称]: 修改参与者
   delete <name>: 删除参与者
   condition <name> [-c 状态 -r 轮数]: 设置状态
   damage <name> <damage>: 记录伤害

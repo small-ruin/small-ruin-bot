@@ -66,7 +66,6 @@ export default class SmallRuin extends BotPlugin {
 
     try {
       if (adventureName) {
-        console.log(adventureName, latest, limit)
         const logsRes = await getLogs(adventureName, latest, limit)
         if (logsRes?.data && logsRes.data.length !== 0) {
           this.Bot.Api.sendGroupMsg(e.group_id, this.getLogMsg(logsRes.data, url, limit))

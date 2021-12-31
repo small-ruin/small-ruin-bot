@@ -20,5 +20,3 @@ for (var i = 0; i<20; i++) {
     const r = d.roll(20)
     sum += r
 }
-
-console.log('expect:', sum/(i+1))

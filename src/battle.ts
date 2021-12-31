@@ -33,7 +33,7 @@ export class Member {
     this.enemy = enemy
   }
   print() {
-    return `${this.name}: hp-${this.hp} 临时生命-${this.tempHp} init-${this.init} 怪物-${this.enemy ? '是' : '否'}
+    return `${this.name}: hp-${this.hp} ${this.tempHp ? '临时生命-' + this.tempHp : ''} init-${this.init} 怪物-${this.enemy ? '是' : '否'}
 状态：${this.conditions.map(c => c.name + '-' + (c.round ? c.round + '轮' : c.round )).join('、')}`
   }
   setCondition(condition:Condition) {
@@ -82,6 +82,7 @@ export class Battle {
   time = 5
   autoJump = true
   autoInfo = true
+  autoAt = true
   
   constructor(dm: number, groupId: number) {
     this.dm = dm
@@ -144,7 +145,7 @@ export class Battle {
     this.members = this.members
       .filter(m => m.init !== null)  
       // @ts-ignore
-      .sort((a, b) => a.init - b.init)
+      .sort((a, b) => b.init - a.init)
   }
   switchMem(name1: string, name2: string) {
     if (this.getMember(name1)?.init !== this.getMember(name2)?.init) {
@@ -161,7 +162,6 @@ export class Battle {
     if (this.current === null) {
       this.current = this.members[0]
     } else {
-      console.log(this.current)
       const currentIdx = this.getMemberIdx(this.current.name)
       if (this.isLastMember(this.current.name)) {
         this.nextRound()
@@ -186,6 +186,15 @@ export class Battle {
     this.getMember(name)?.damage(damage)
   }
   print() {
+    return `挂载群: ${this.groupId}
+自动跳过: ${this.autoJump}
+自动跳过时长: ${this.time}
+自动提示PC状态: ${this.autoInfo}
+自动@PC: ${this.autoAt}
+轮数: ${this.round+1}
+当前玩家: ${this.current?.name}`
+  }
+  printMember() {
     return this.members.map(m => m.print()).join('\n')
   }
   printInit(a: boolean) {
