@@ -6,7 +6,7 @@ import { HELP_SB } from "../constant";
 type Command = 'on' | 'pause' | 'end' | 'member' | 'next'
     | 'nextRound' | 'switch' | 'reset' | 'init' | 'help' | 'jump' | 'jump-off'
     | 'reminder' | 'reminder-off' | 'J' | 'R' | 'jump-time' | 'jt' | 'current'
-    | 'row' | 'at' | 'at-off' | 'A' | 'status' | 'status'
+    | 'row' | 'at' | 'at-off' | 'A' | 'status' | 'status' | 'delete' | 'reboot'
 
 export default class DicePlugin extends BotPlugin {
     active: boolean = false
@@ -146,12 +146,16 @@ export default class DicePlugin extends BotPlugin {
         this.handleNextOne(battle)
     }
     handleNextOne(battle: Battle) {
-        battle.next()
-        const rst = [`-------- 第${battle.round+1}轮，${battle.current?.name}的回合 --------`]
-
+        const mems = battle.next()
+        
+        const rst = [`-------- 第${battle.round+1}轮，${mems.map(m => m.name).join('、')}的回合 --------`]
         if (battle.autoInfo && battle.current) {
-            let m = battle.getMember(battle.current.name)
-            rst.push(`${m.name}: ${m.hp}hp ${m.conditions.map(c => c.name).join('、')}`)
+            mems.forEach(m => {
+                const {enemy, conditions, hp, name} = m
+                if (!enemy || (conditions.length !== 0)) {
+                    rst.push(`${name}: ${m.enemy ? '' : m.hp + 'hp '}${m.conditions.map(c => c.name).join('、')}`)
+                }
+            })
         }
         if (battle.autoAt && battle.current?.pc) {
             rst.push(this.Bot.CQCode.at(+battle.current.pc))
@@ -206,7 +210,7 @@ export default class DicePlugin extends BotPlugin {
                 this.active = false
                 if (this.timeoutFlag)
                     clearInterval(this.timeoutFlag)
-                delete this.cache[battle.dm]
+                battle.reset()
                 this.groupPrint(battle.groupId, '======== 战斗结束 ========')
                 break;
             case 'member':
@@ -252,6 +256,12 @@ export default class DicePlugin extends BotPlugin {
                 break
             case 'status':
                 this.print(e, battle.print())
+                break;
+            case 'delete':
+                delete this.cache[battle.dm]
+                break;
+            case 'reboot':
+                battle.reboot()
                 break;
             default:
                 throw new Error('未知指令：' + argv._[1])

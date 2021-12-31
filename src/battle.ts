@@ -96,6 +96,13 @@ export class Battle {
   delete(name: string) {
     this.members.splice(this.getMemberIdx(name), 1)
   }
+  reboot() {
+    this.reset()
+    this.members = []
+    this.autoJump = true
+    this.autoInfo = true
+    this.autoAt = true
+  }
   setInit(name: string, init: number) {
     this.getMember(name)?.setInit(init)
   }
@@ -108,8 +115,9 @@ export class Battle {
     this.getMember(name)?.setCondition(condition)
   }
   reset() {
-    this.members = []
+    this.members = this.members.filter(m => !m.enemy)
     this.round = 0
+    this.current = null
   }
   delay(name: string, target: string) {
     const actionM = this.members.find(m => m.name === name)
@@ -159,16 +167,31 @@ export class Battle {
     this.members[member2I] = member1
   }
   next() {
-    if (this.current === null) {
-      this.current = this.members[0]
-    } else {
-      const currentIdx = this.getMemberIdx(this.current.name)
-      if (this.isLastMember(this.current.name)) {
-        this.nextRound()
-      } else {
-        this.current = this.members[currentIdx + 1]
-      }
+    if (this.members.every(m => m.enemy))
+      throw new Error('没有PC！')
+
+    let current = (this.current === null || this.current === undefined) ? null : this.getMemberIdx(this.current.name)
+    let next = (current !== null) ? current : -1
+    let result: Member[] = []
+
+    if (!this.members[next+1] && this.current) {
+      this.nextRound()
+      next = -1
     }
+
+    if (this.members[next + 1].enemy) {
+      while(this.members[next + 1]?.enemy) {
+        next++
+        result.push(this.members[next])
+        this.current = this.members[next]
+      }
+    } else {
+      next = next+1
+      this.current = this.members[next]
+      result.push(this.current)
+    }
+
+    return result
   }
   nextRound() {
     this.round++
