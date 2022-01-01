@@ -24,6 +24,7 @@ export class Member {
   tempHp: number = 0
   conditions: Condition[] = []
   enemy = false
+  nonlethalDamage = 0
   constructor({name, pc = '', hp = 0, tempHp = 0, init = null, enemy = false}: MemberInit) {
     this.name = name
     this.pc = pc
@@ -33,8 +34,12 @@ export class Member {
     this.enemy = enemy
   }
   print() {
-    return `${this.name}: hp-${this.hp} ${this.tempHp ? '临时生命-' + this.tempHp : ''} init-${this.init} 怪物-${this.enemy ? '是' : '否'}
-状态：${this.conditions.map(c => c.name + '-' + (c.round ? c.round + '轮' : c.round )).join('、')}`
+    return `${this.name}: hp${this.hp} ${this.tempHp ? '临时生命' + this.tempHp : ''}`
+      + ` init${this.init} ${this.enemy ? '怪物' : ''}`
+      + (this.pc ? ' pc' + this.pc : '')
+      + (this.conditions.length
+          ? '\n状态' + this.conditions.map(c => c.name + '-' + (c.round ? c.round + '轮' : c.round )).join('、')
+          : '')
   }
   setCondition(condition:Condition) {
     const target = this.conditions.find(c => c.name === condition.name)
@@ -57,10 +62,28 @@ export class Member {
     this.tempHp = tempHp
     this.enemy = enemy
   }
+  getNonlethalDamage(d: number) {
+    this.nonlethalDamage += d
+    if (this.nonlethalDamage === this.hp)
+      return this.name + '恍惚！'
+    if (this.nonlethalDamage > this.hp)
+      return this.name + '昏迷！'
+  }
+  health(d: number) {
+    this.hp += d
+    if (this.nonlethalDamage > 0) {
+      this.nonlethalDamage -= d
+      if (this.nonlethalDamage < 0)
+        this.nonlethalDamage = 0
+    }
+  }
   damage(d: number) {
-    if (!this.hp) {
+    if (!Number.isInteger(this.hp)) {
       throw new Error(`${this.name}未设置HP！`)
     }
+
+    let originHp = this.hp
+
     if (this.tempHp > 0) {
       this.tempHp -= d
       if (this.tempHp < 0) {
@@ -70,6 +93,22 @@ export class Member {
     } else {
       this.hp -= d
     }
+
+    if (this.hp <= 0) {
+      if (originHp > -10 && this.hp <= -10)
+        return this.name + '死亡！'
+      if (originHp > 0) {
+        if (this.hp === 0)
+          return this.name + '瘫痪！'
+        else
+          return this.name + '濒死！'
+      }
+    } else {
+      if (this.nonlethalDamage === this.hp)
+        return this.name + '恍惚！'
+      if (this.nonlethalDamage > this.hp)
+        return this.name + '昏迷！'
+      }
   }
 }
 
@@ -90,6 +129,9 @@ export class Battle {
   }
 
   addMember(m: any) {
+    if (this.members.find(member => member.name === m.name)) {
+      throw new Error('重复的名称：' + m.name)
+    }
     this.members.push(new Member(m))
     this.sort()
   }
@@ -105,9 +147,11 @@ export class Battle {
   }
   setInit(name: string, init: number) {
     this.getMember(name)?.setInit(init)
+    this.sort()
   }
   setMember(name: string, attrs: MemberInit) {
     this.getMember(name)?.setAttrs(attrs)
+    if (attrs.init) this.sort()
   }
   setCondition(name: string, c: ConditionName, round: number) {
     const condition: Condition = { name: c }
@@ -115,9 +159,11 @@ export class Battle {
     this.getMember(name)?.setCondition(condition)
   }
   reset() {
-    this.members = this.members.filter(m => !m.enemy)
     this.round = 0
     this.current = null
+  }
+  deleteAllEnemy() {
+    this.members = this.members.filter(m => !m.enemy)
   }
   delay(name: string, target: string) {
     const actionM = this.members.find(m => m.name === name)
@@ -130,10 +176,10 @@ export class Battle {
       throw new Error('未设置先攻')
     if (!nextM) {
       actionM.init = targetM.init - 1
-      return
-    }
-    if (nextM.init === null) throw new Error(nextM.name + '未设置先攻')
-    actionM.init = (targetM.init + nextM.init) / 2
+    } else {
+      if (nextM.init === null) throw new Error(nextM.name + '未设置先攻')
+      actionM.init = (targetM.init + nextM.init) / 2
+    } 
     this.sort()
   }
   getMember(name: string) {
@@ -174,11 +220,13 @@ export class Battle {
     let next = (current !== null) ? current : -1
     let result: Member[] = []
 
+    // 处理下一轮
     if (!this.members[next+1] && this.current) {
       this.nextRound()
       next = -1
     }
 
+    // 如果是敌人的回合则遍历到最后一个敌人
     if (this.members[next + 1].enemy) {
       while(this.members[next + 1]?.enemy) {
         next++
@@ -186,6 +234,7 @@ export class Battle {
         this.current = this.members[next]
       }
     } else {
+      // 否则取下一个敌人
       next = next+1
       this.current = this.members[next]
       result.push(this.current)
@@ -206,7 +255,13 @@ export class Battle {
     })
   }
   damage(name: string, damage: number) {
-    this.getMember(name)?.damage(damage)
+    return this.getMember(name)?.damage(damage)
+  }
+  health(name: string, hp: number) {
+    return this.getMember(name)?.health(hp)
+  }
+  nd(name: string, damage: number) {
+    return this.getMember(name)?.getNonlethalDamage(damage)
   }
   print() {
     return `挂载群: ${this.groupId}
@@ -215,10 +270,12 @@ export class Battle {
 自动提示PC状态: ${this.autoInfo}
 自动@PC: ${this.autoAt}
 轮数: ${this.round+1}
-当前玩家: ${this.current?.name}`
+当前玩家: ${this.current?.name || '无'}`
   }
-  printMember() {
-    return this.members.map(m => m.print()).join('\n')
+  printMember(a: boolean = false) {
+    let mems = this.members
+    if (!a) mems = mems.filter(m => !m.enemy)
+    return mems.map(m => m.print()).join('\n')
   }
   printInit(a: boolean) {
     let list = this.members.slice()
