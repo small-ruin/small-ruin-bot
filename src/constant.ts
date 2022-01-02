@@ -85,8 +85,9 @@ member: 管理参与者，后接：
   condition <name> [-c 状态 -r 轮数]: 设置状态
   damage <name> <damage>: 记录伤害
   nd <name> <damage>: 记录非致命伤害
-  health <name> <hp>: 恢复血量
+  heal <name> <hp>: 恢复血量
   list [-a]: 查看人员
+  delay <name1> <name2>: name1 延迟至 name2 后
 nextRound: 下一轮
 next: 下一个
 reset: 重置战斗删除所有敌方单位

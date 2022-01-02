@@ -123,7 +123,7 @@ export default class DicePlugin extends BotPlugin {
                 }
                 break
             }
-            case 'health':
+            case 'heal':
                 const healthHp = +argv._[4]
                 if (isNaN(healthHp)) throw new Error('错误的数值')
                 battle.health(name, healthHp)
@@ -175,7 +175,7 @@ export default class DicePlugin extends BotPlugin {
     }
     handleNext(battle: Battle) {
         battle.nextRound()
-        this.groupPrint(battle.groupId, `-------- 跳至${battle.round}轮 --------`)
+        this.groupPrint(battle.groupId, `-------- 跳至${battle.round+1}轮 --------`)
         this.handleNextOne(battle)
     }
     handleNextOne(battle: Battle) {
@@ -249,6 +249,8 @@ export default class DicePlugin extends BotPlugin {
                 if (this.timeoutFlag)
                     clearInterval(this.timeoutFlag)
                 this.groupPrint(battle.groupId, '======== 战斗结束 ========')
+                battle.reset()
+                battle.deleteAllEnemy()
                 break;
             case 'member':
                 await this.handleMember(e, argv, battle)

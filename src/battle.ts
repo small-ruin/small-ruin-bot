@@ -24,6 +24,7 @@ export class Member {
   tempHp: number = 0
   conditions: Condition[] = []
   enemy = false
+  dead = false
   nonlethalDamage = 0
   constructor({name, pc = '', hp = 0, tempHp = 0, init = null, enemy = false}: MemberInit) {
     this.name = name
@@ -95,9 +96,11 @@ export class Member {
     }
 
     if (this.hp <= 0) {
-      if (originHp > -10 && this.hp <= -10)
+      if (originHp > -10 && this.hp <= -10) {
+        this.dead = true
         return this.name + '死亡！'
-      if (originHp > 0) {
+      }
+      if (originHp >= 0) {
         if (this.hp === 0)
           return this.name + '瘫痪！'
         else
@@ -212,9 +215,14 @@ export class Battle {
     this.members[member1I] = member2
     this.members[member2I] = member1
   }
+  clearDead() {
+    this.members = this.members.filter(m => !m.dead)
+  }
   next() {
     if (this.members.every(m => m.enemy))
       throw new Error('没有PC！')
+    
+    this.clearDead()
 
     let current = (this.current === null || this.current === undefined) ? null : this.getMemberIdx(this.current.name)
     let next = (current !== null) ? current : -1
@@ -244,7 +252,7 @@ export class Battle {
   }
   nextRound() {
     this.round++
-    this.current = this.members[0]
+    this.current = null
     this.members.forEach(m => {
       m.conditions.forEach((c, i) => {
         if (c.round) {
