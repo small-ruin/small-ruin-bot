@@ -2,16 +2,21 @@ import minimist from "minimist";
 import { Battle } from "../battle";
 import { BotPlugin, GroupMsg, PrivateMsg } from "xianyu-robot";
 import { HELP_SB } from "../constant";
+import { readFileSync } from "fs";
+import { join } from "path"
+import spells from '../rules/3r.json'
 
 type Command = 'on' | 'pause' | 'end' | 'member' | 'next'
     | 'nextRound' | 'switch' | 'reset' | 'init' | 'help' | 'jump' | 'jump-off'
     | 'reminder' | 'reminder-off' | 'J' | 'R' | 'jump-time' | 'jt' | 'current'
     | 'row' | 'at' | 'at-off' | 'A' | 'status' | 'status' | 'delete' | 'reboot'
+    | 'rule'
 
 export default class DicePlugin extends BotPlugin {
     active: boolean = false
     cache: Record<number, Battle> = {}
     timeoutFlag = null
+    spells = spells
 
     print(e: GroupMsg | PrivateMsg, ms: string | string[] | undefined, parsedArgv?: any) {
         if (parsedArgv?.silent) return
@@ -317,6 +322,23 @@ export default class DicePlugin extends BotPlugin {
                     clearInterval(this.timeoutFlag)
                 battle.reboot()
                 this.print(e, '初始化战斗', parsedArgv)
+                break;
+            case 'rule':
+                const keyword = argv._[2]
+                // @ts-ignore
+                if ('dnd3r ' + keyword in this.spells.helpdoc) {
+                    // @ts-ignore
+                    this.print(e, this.spells.helpdoc['dnd3r ' + keyword])
+                } else {
+                    const maybe = Object.keys(this.spells.helpdoc)
+                        .filter(i => i.indexOf(keyword) !== -1)
+                        .map(i => i.replace(/dnd3r\s/, ''))
+                    if (maybe.length) {
+                        this.print(e, '未找到, 是不是要找' + maybe.join('、'))
+                    } else {
+                        this.print(e, '未找到')
+                    }
+                }
                 break;
             default:
                 throw new Error('未知指令：' + argv._[1])
