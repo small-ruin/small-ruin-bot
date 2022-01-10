@@ -336,6 +336,10 @@ export default class DicePlugin extends BotPlugin {
                         if (maybe.length === 1) {
                             // @ts-ignore
                             this.print(e, maybe[0] + '\r\n' +this.spells[maybe[0]])
+                        // @ts-ignore
+                        } else if (maybe.find(n => /([^（^）]+)/.exec(n) && (/([^（^）]+)/.exec(n)[0] === keyword))) {
+                            // @ts-ignore
+                            this.print(e, this.spells[maybe.find(n => /([^（^）]+)/.exec(n) && (/([^（^）]+)/.exec(n)[0] === keyword))])
                         } else {
                             this.print(e, '未找到, 是不是要找' + maybe.join('、'))
                         }
