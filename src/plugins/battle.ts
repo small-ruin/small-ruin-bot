@@ -4,7 +4,7 @@ import { BotPlugin, GroupMsg, PrivateMsg } from "xianyu-robot";
 import { HELP_SB } from "../constant";
 import { readFileSync } from "fs";
 import { join } from "path"
-import spells from '../rules/3r.json'
+import spells from '../rules/3r_spells.json'
 
 type Command = 'on' | 'pause' | 'end' | 'member' | 'next'
     | 'nextRound' | 'switch' | 'reset' | 'init' | 'help' | 'jump' | 'jump-off'
@@ -153,7 +153,6 @@ export default class DicePlugin extends BotPlugin {
                 break
             default:
                 throw new Error('未知指令：' + argv._[1])
-                break;
         }
     }
     async handleInit(m: GroupMsg | PrivateMsg, argv: minimist.ParsedArgs, battle: Battle) {
@@ -175,7 +174,6 @@ export default class DicePlugin extends BotPlugin {
                 break
             default:
                 throw new Error('未知指令：' + argv._[1])
-                break;
         }
     }
     handleNext(battle: Battle) {
@@ -325,16 +323,22 @@ export default class DicePlugin extends BotPlugin {
                 break;
             case 'rule':
                 const keyword = argv._[2]
-                // @ts-ignore
-                if ('dnd3r ' + keyword in this.spells.helpdoc) {
+                if (keyword.length <= 1) {
+                    this.print(e, '关键词少于2个字，忽略')
+                }
+                if (keyword in this.spells) {
                     // @ts-ignore
-                    this.print(e, this.spells.helpdoc['dnd3r ' + keyword])
+                    this.print(e, this.spells[keyword])
                 } else {
-                    const maybe = Object.keys(this.spells.helpdoc)
+                    const maybe = Object.keys(this.spells)
                         .filter(i => i.indexOf(keyword) !== -1)
-                        .map(i => i.replace(/dnd3r\s/, ''))
                     if (maybe.length) {
-                        this.print(e, '未找到, 是不是要找' + maybe.join('、'))
+                        if (maybe.length === 1) {
+                            // @ts-ignore
+                            this.print(e, this.spells[maybe[0]])
+                        } else {
+                            this.print(e, '未找到, 是不是要找' + maybe.join('、'))
+                        }
                     } else {
                         this.print(e, '未找到')
                     }

@@ -95,5 +95,6 @@ init: 先攻，后接：
   list [-a] 先攻表
   set <name> <init> 设置先攻
   switch <name1> <name2> 交换两个先攻相同的人的顺序
+rule <关键词> 搜索法术，暂时挂在这里，不过我比较懒可能就不动了
 `
   
