@@ -328,14 +328,14 @@ export default class DicePlugin extends BotPlugin {
                 }
                 if (keyword in this.spells) {
                     // @ts-ignore
-                    this.print(e, this.spells[keyword])
+                    this.print(e, keyword + '\r\n' + this.spells[keyword])
                 } else {
                     const maybe = Object.keys(this.spells)
                         .filter(i => i.indexOf(keyword) !== -1)
                     if (maybe.length) {
                         if (maybe.length === 1) {
                             // @ts-ignore
-                            this.print(e, this.spells[maybe[0]])
+                            this.print(e, maybe[0] + '\r\n' +this.spells[maybe[0]])
                         } else {
                             this.print(e, '未找到, 是不是要找' + maybe.join('、'))
                         }
