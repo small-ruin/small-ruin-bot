@@ -10,13 +10,14 @@ type Command = 'on' | 'pause' | 'end' | 'member' | 'next'
     | 'nextRound' | 'switch' | 'reset' | 'init' | 'help' | 'jump' | 'jump-off'
     | 'reminder' | 'reminder-off' | 'J' | 'R' | 'jump-time' | 'jt' | 'current'
     | 'row' | 'at' | 'at-off' | 'A' | 'status' | 'status' | 'delete' | 'reboot'
-    | 'rule'
+    | 'rule' | 'black'
 
 export default class DicePlugin extends BotPlugin {
     active: boolean = false
     cache: Record<number, Battle> = {}
     timeoutFlag = null
     spells = spells
+    blackList: number[] = []
 
     print(e: GroupMsg | PrivateMsg, ms: string | string[] | undefined, parsedArgv?: any) {
         if (parsedArgv?.silent) return
@@ -202,6 +203,34 @@ export default class DicePlugin extends BotPlugin {
             this.resetTimer(battle)
         }
     }
+    handleBlack(m: GroupMsg | PrivateMsg, argv: minimist.ParsedArgs) {
+        const qq = +argv._[3]
+        switch (argv._[2]) {
+            case 'list':
+                let mems = this.blackList.map(n => n + '').join('\n')
+                if (mems.length === 0) mems = '无'
+                this.print(m, mems)
+                break;
+            case 'clear':
+                this.blackList.length = 0
+                this.print(m, '已清除')
+                break;
+            case 'rm':
+            case 'remove':
+                if (!Number.isInteger(qq)) return this.print(m, '请输入QQ号！')
+                if (!this.blackList.includes(qq)) return this.print(m, qq + '不在黑名单中')
+                this.blackList.splice(this.blackList.indexOf(qq), 1)
+                this.print(m, '成功')
+                break;
+            case 'add':
+                if (!Number.isInteger(qq)) return this.print(m, '请输入QQ号！')
+                this.blackList.push(qq)
+                this.print(m, '成功')
+                break;
+            default:
+                this.print(m, '未知指令:' + argv._[2])
+        }
+    }
     resetTimer(battle: Battle) {
         if (this.timeoutFlag) {
             clearInterval(this.timeoutFlag)
@@ -321,6 +350,9 @@ export default class DicePlugin extends BotPlugin {
                 battle.reboot()
                 this.print(e, '初始化战斗', parsedArgv)
                 break;
+            case 'black':
+                this.handleBlack(e, argv)
+                break;
             case 'rule':
                 const keyword = argv._[2]
                 if (keyword.length <= 1) {
@@ -375,6 +407,7 @@ export default class DicePlugin extends BotPlugin {
             try {
                 let bt = this.cache[sender.user_id];
                 if (!bt) bt = this.cache[sender.user_id] = new Battle(sender.user_id, group_id)
+                if (this.blackList.includes(sender.user_id)) return
                 if (message.match(/^sb/)) {
                     if (message.split(' ')[1] = 'row') {
                         await this.handleRow(e, bt)
