@@ -1,9 +1,10 @@
-import { BotPlugin, GroupMsg } from 'xianyu-robot';
+import { BotPlugin, GroupMsg, PrivateMsg } from 'xianyu-robot';
 import minimist, { ParsedArgs } from 'minimist';
 import cheerio from 'cheerio';
 import { getLogs, search, getAdventures, searchInLog} from './request'
 import { Adventure, Log } from './interface';
 import { HELP_SM, HELP_SUFFIX } from '../../constant';
+import MessageManger from '../../core/Message';
 
 // @ts-ignore
 const baseUrl = process.env.BASE_URL
@@ -12,8 +13,9 @@ type Command = 'list' | 'search' | 'help'
 
 export default class SmallRuin extends BotPlugin {
   name = 'small-ruin'
+  mm = new MessageManger(this.Bot)
 
-  handleSmallRuinCommand(e: GroupMsg) {
+  handleSmallRuinCommand(e: GroupMsg | PrivateMsg) {
     const argv = minimist(e.message.split(' ').slice(1))
 
     const command: string = argv._[0] || ''
@@ -26,10 +28,10 @@ export default class SmallRuin extends BotPlugin {
         this.handleSearch(argv, e)
         break
       case 'help':
-        this.Bot.Api.sendGroupMsg(e.group_id, HELP_SUFFIX + HELP_SM)
+        this.mm.print(e, HELP_SUFFIX + HELP_SM)
         break
       default:
-        this.Bot.Api.sendGroupMsg(e.group_id, `未知指令: ${command}`)
+        this.mm.print(e, `未知指令: ${command}`)
     }
   }
 
@@ -60,7 +62,7 @@ export default class SmallRuin extends BotPlugin {
     }
   }
 
-  async handleList(argv: ParsedArgs, e: GroupMsg) {
+  async handleList(argv: ParsedArgs, e: GroupMsg | PrivateMsg) {
     const { latest, limit = 10, url } = this.parseArgv(argv);
     const adventureName = argv._[1]
 
@@ -68,24 +70,24 @@ export default class SmallRuin extends BotPlugin {
       if (adventureName) {
         const logsRes = await getLogs(adventureName, latest, limit)
         if (logsRes?.data && logsRes.data.length !== 0) {
-          this.Bot.Api.sendGroupMsg(e.group_id, this.getLogMsg(logsRes.data, url, limit))
+          this.mm.print(e, this.getLogMsg(logsRes.data, url, limit))
         } else {
-          this.Bot.Api.sendGroupMsg(e.group_id, '未命中')
+          this.mm.print(e, '未命中')
         }
         return
       }
   
       const adventureRes = await getAdventures()
       if (adventureRes && adventureRes.data?.length >= 0) {
-        return this.Bot.Api.sendGroupMsg(e.group_id, this.getAdventureMsg(adventureRes.data, url))
+        return this.mm.print(e, this.getAdventureMsg(adventureRes.data, url))
       }
   
-      this.Bot.Api.sendGroupMsg(e.group_id, '错误')
+      this.mm.print(e, '错误')
     } catch(e) {
       console.error(e)
     }
   }
-  async handleSearch(argv: ParsedArgs, e: GroupMsg) {
+  async handleSearch(argv: ParsedArgs, e: GroupMsg | PrivateMsg) {
     const adventureName = argv._[1]
     let logName: string | null = argv._[2]
     let key = argv._[3]
@@ -94,7 +96,7 @@ export default class SmallRuin extends BotPlugin {
       logName = null
     }
     if (!adventureName || !key) {
-      return this.Bot.Api.sendGroupMsg(e.group_id, '用法：sm search <adventure name> [log name] <keyword>')
+      return this.mm.print(e, '用法：sm search <adventure name> [log name] <keyword>')
     }
     try {
       if (logName) {
@@ -119,18 +121,18 @@ export default class SmallRuin extends BotPlugin {
             msg += '\n--------\n更多命中项请在log中确认。'
           }
 
-          return this.Bot.Api.sendGroupMsg(e.group_id, msg)
+          return this.mm.print(e, msg)
         }
       } else {
         const logsRes = await search(adventureName, key) 
         if (logsRes.data?.length !== 0) {
-          return this.Bot.Api.sendGroupMsg(e.group_id, this.getLogMsg(logsRes.data, true))
+          return this.mm.print(e, this.getLogMsg(logsRes.data, true))
         }
       }
-      return this.Bot.Api.sendGroupMsg(e.group_id, '未命中')
+      return this.mm.print(e, '未命中')
     } catch(error) {
       console.log(error)
-      return this.Bot.Api.sendGroupMsg(e.group_id, '出错了:' + error)
+      return this.mm.print(e, '出错了:' + error)
     }
   }
 
@@ -141,6 +143,9 @@ export default class SmallRuin extends BotPlugin {
       .reg(/^sm/)
       .desc('小废墟')
       .action('group', e => {
+        this.handleSmallRuinCommand(e)
+      })
+      .action('private', e => {
         this.handleSmallRuinCommand(e)
       })
   }
