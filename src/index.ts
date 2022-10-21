@@ -2,6 +2,7 @@ import App from 'xianyu-robot'
 import SmallRuin from './plugins/smallRuin'
 import DicePlugin from './plugins/dice'
 import SearchPlugin from './plugins/search'
+import LogPlugin from './plugins/log'
 
 const app = new App()
 
@@ -9,6 +10,7 @@ app
 .plugin(SmallRuin)
 .plugin(DicePlugin)
 .plugin(SearchPlugin)
+.plugin(LogPlugin)
 .start({
   wss: false, // 是否使用wss
   accessToken: "", // API的访问token
